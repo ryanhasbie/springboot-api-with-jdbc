@@ -59,8 +59,11 @@ public class TeacherService implements ITeacherService {
     @Override
     public void update(Teacher teacher, String id) {
         try {
-            Teacher existingTeacher = get(id);
-            iTeacherRepository.update(teacher, existingTeacher.getTeacherId());
+            Optional<Teacher> findById = iTeacherRepository.findById(id);
+            if (findById.isEmpty()) {
+                throw new NotFoundException();
+            }
+            iTeacherRepository.update(teacher, id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -82,8 +85,8 @@ public class TeacherService implements ITeacherService {
     @Override
     public Optional<List<Teacher>> createBulk(List<Teacher> teachers) {
         try {
-            if (!(iTeacherRepository.getAll().size() < dataLength)) {
-                throw new Exception("Data is full!");
+            if (!(iTeacherRepository.getAll().size() + teachers.size() <= dataLength)) {
+                throw new Exception("Data cannot be more than 6");
             }
             return iTeacherRepository.createBulk(teachers);
         } catch (Exception e) {

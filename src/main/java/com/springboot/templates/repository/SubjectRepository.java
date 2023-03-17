@@ -33,6 +33,11 @@ public class SubjectRepository implements ISubjectRepository {
 
     @Override
     public Optional<Subject> findById(String id) throws Exception {
+        for (Subject subject: subjects) {
+            if (subject.getSubjectId().equals(id)) {
+                return Optional.of(subject);
+            }
+        }
         return Optional.empty();
     }
 

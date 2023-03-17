@@ -17,18 +17,25 @@ public class SubjectService implements ISubjectService {
     @Autowired
     ISubjectRepository iSubjectRepository;
 
-    @Value("2")
+    @Value("9")
     private Integer dataLength;
 
     @Override
     public Subject create(Subject subject) {
         try {
             if (!(iSubjectRepository.getAll().size() < dataLength)) {
-                throw new Exception("Data is full!");
+                throw new Exception("Data cannot be more than 6");
             }
-            Optional<List<Subject>> subject1 = iSubjectRepository.findBy(SubjectKey.subjectName, subject.getSubjectName());
-            if (subject1.isPresent()) {
-                throw new Exception("Subject name already exist!");
+//            Optional<List<Subject>> subject1 = iSubjectRepository.findBy(SubjectKey.subjectName, subject.getSubjectName());
+//            if (subject1.isPresent()) {
+//                throw new Exception("Subject name already exist!");
+//            }
+
+            List<Subject> subjects = iSubjectRepository.getAll();
+            for (Subject existingSubject: subjects) {
+                if (existingSubject.getSubjectName().equalsIgnoreCase(subject.getSubjectName())) {
+                    throw new Exception("Subject already exists!");
+                }
             }
             return iSubjectRepository.create(subject);
         } catch (Exception e) {
@@ -65,8 +72,15 @@ public class SubjectService implements ISubjectService {
     @Override
     public void update(Subject subject, String id) {
         try {
-            Subject existingSubject = get(id);
-            iSubjectRepository.update(subject, existingSubject.getSubjectId());
+            Optional<List<Subject>> subject1 = iSubjectRepository.findBy(SubjectKey.subjectName, subject.getSubjectName());
+            Optional<Subject> findById = iSubjectRepository.findById(id);
+            if (subject1.isPresent()) {
+                throw new Exception("Subject name already exist");
+            }
+            if (findById.isEmpty()) {
+                throw new NotFoundException();
+            }
+            iSubjectRepository.update(subject, id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -88,8 +102,17 @@ public class SubjectService implements ISubjectService {
     @Override
     public Optional<List<Subject>> createBulk(List<Subject> subjects) {
         try {
-            if (!(iSubjectRepository.getAll().size() < dataLength)) {
-                throw new Exception("Data is full!");
+            List<Subject> getAll = iSubjectRepository.getAll();
+            if (subjects.stream().anyMatch(s -> getAll.stream().anyMatch(ga -> ga.getSubjectName().equalsIgnoreCase(s.getSubjectName())))) {
+                throw new Exception("Subject name can not duplicate");
+            }
+
+            if (subjects.stream().map(Subject::getSubjectName).distinct().count() < subjects.size()) {
+                throw new Exception("Name in one bulk can not be duplicate");
+            }
+
+            if (!(iSubjectRepository.getAll().size() + subjects.size() <= dataLength)) {
+                    throw new Exception("Data cannot be more than 9");
             }
             return iSubjectRepository.createBulk(subjects);
         } catch (Exception e) {

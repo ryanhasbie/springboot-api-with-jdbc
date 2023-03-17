@@ -1,13 +1,17 @@
 package com.springboot.templates.model.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class StudentRequest {
-    @NotBlank(message = "{firstname required}")
+    @NotBlank(message = "{invalid.firstname.required}")
+    @Size(min = 3, max = 15, message = "{invalid.firstname.size}")
     private String firstName;
-    @NotBlank(message = "{lastname required}")
+    @NotBlank(message = "{invalid.lastname.required}")
+    @Size(min = 3, max = 15, message = "{invalid.lastname.size}")
     private String lastName;
-    @NotBlank(message = "{email required}")
+    @NotBlank(message = "{invalid.email.required}")
+    @Size(min = 10, message = "{invalid.email.size}")
     private String email;
 
     public String getFirstName() {

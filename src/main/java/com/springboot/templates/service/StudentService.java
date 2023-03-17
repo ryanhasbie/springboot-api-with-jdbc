@@ -16,14 +16,20 @@ public class StudentService implements IStudentService {
     @Autowired
     IStudentRepository iStudentRepository;
 
-    @Value("1")
+    @Value("25")
     private Integer dataLength;
 
     @Override
     public Student create(Student student) {
         try {
             if (!(iStudentRepository.getAll().size() < dataLength)) {
-                throw new Exception("Data is full");
+                throw new Exception("Data cannot be more than 25");
+            }
+            List<Student> students = iStudentRepository.getAll();
+            for (Student existingStudent: students) {
+                if (existingStudent.getEmail().equalsIgnoreCase(student.getEmail())) {
+                    throw new Exception("Email already exist!");
+                }
             }
             return iStudentRepository.create(student);
         } catch (Exception e) {
@@ -60,8 +66,12 @@ public class StudentService implements IStudentService {
     @Override
     public void update(Student student, String id) {
         try {
-            Student existingCourse = get(id);
-            iStudentRepository.update(student, existingCourse.getStudentId());
+//            Student existingCourse = get(id);
+            Optional<Student> findBy = iStudentRepository.findById(id);
+            if (findBy.isEmpty()) {
+                throw new NotFoundException();
+            }
+            iStudentRepository.update(student, id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -70,8 +80,8 @@ public class StudentService implements IStudentService {
     @Override
     public void delete(String id) {
         try {
-            Optional<Student> findBy = iStudentRepository.findById(id);
-            if (findBy.isEmpty()) {
+            Optional<Student> findById = iStudentRepository.findById(id);
+            if (findById.isEmpty()) {
                 throw new NotFoundException();
             }
             iStudentRepository.delete(id);
@@ -83,8 +93,8 @@ public class StudentService implements IStudentService {
     @Override
     public Optional<List<Student>> createBulk(List<Student> students) {
         try {
-            if (!(iStudentRepository.getAll().size() < dataLength)) {
-                throw new Exception("Data is full");
+            if (!(iStudentRepository.getAll().size() + students.size() <= dataLength)) {
+                throw new Exception("Data cannot be more than 25");
             }
             return iStudentRepository.createBulk(students);
         } catch (Exception e) {
